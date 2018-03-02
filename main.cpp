@@ -1,20 +1,20 @@
 #include "server.h"
 
-//³õÊ¼»¯³ÉÔ±±äÁ¿
+//åˆå§‹åŒ–æˆå‘˜å˜é‡
 void InitMember(void)
 {
-	//³õÊ¼»¯¶ÁĞ´»º´æ
+	//åˆå§‹åŒ–è¯»å†™ç¼“å­˜
 	ZeroMemory(bufRecv, sizeof(bufRecv));
 	ZeroMemory(bufSend, sizeof(bufSend));
 
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	sServer = INVALID_SOCKET;
 	sClient = INVALID_SOCKET;
 	bConning = false;
 	retVal = 0;
 }
 
-//´íÎó´¦Àí
+//é”™è¯¯å¤„ç†
 int HandleSocketError(char *str)
 {
 	ShowSocketMsg(str);
@@ -22,7 +22,7 @@ int HandleSocketError(char *str)
 	return SERVER_API_ERROR;
 }
 
-//µ¯³öÏûÏ¢´¦Àí
+//å¼¹å‡ºæ¶ˆæ¯å¤„ç†
 int ShowSocketMsg(char *str)
 {
 	MessageBox(NULL, TEXT("%s", str), TEXT("Error!"), MB_OKCANCEL);
@@ -30,7 +30,7 @@ int ShowSocketMsg(char *str)
 
 bool WsaStartup(void)
 {
-	//³õÊ¼»¯Windows sockets DLL
+	//åˆå§‹åŒ–Windows sockets DLL
 	WORD requse = MAKEWORD(2, 2);
 	retVal = WSAStartup(requse, &wsaData);
 	if (retVal!=0)
@@ -38,16 +38,17 @@ bool WsaStartup(void)
 		printf("can not find a usable windows sockets dll!");
 		return SERVER_DLL_ERROR;
 	}
-	//È·±£Windows DLLÖ§³Ö1.1
+	//ç¡®ä¿Windows DLLæ”¯æŒ1.1
 	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
 	{
 		ShowSocketMsg("Can not find a usable Windows Sockets dll!");
 		WSACleanup();
 		return SERVER_DLL_ERROR;
 	}
+	return true;
 }
 
-//´´½¨Ì×½Ó×Ö
+//åˆ›å»ºå¥—æ¥å­—
 bool Scokets(void)
 {
 	sServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -55,10 +56,24 @@ bool Scokets(void)
 	{
 		 return HandleSocketError("Failed socket()!");
 	}
+	return true;
 }
 
-//°ó¶¨Ì×½Ó×Ö
+//ç»‘å®šå¥—æ¥å­—
 bool Bind_socket(void)
 {
+	//æœåŠ¡å™¨å¥—æ¥å­—åœ°å€
+	SOCKADDR_IN addrServ;
+	addrServ.sin_family = AF_INET;
+	addrServ.sin_port =htons(SERVER_PORT);
+	addrServ.sin_addr.S_un.S_addr = INADDR_ANY;
 
+	//ç»‘å®šå¥—æ¥å­—
+	retVal = bind(sServer, (LPSOCKADDR)&addrServ, sizeof(addrServ));
+	if (SOCKET_ERROR==retVal)
+	{
+		closesocket(sServer);
+		return HandleSocketError("Failed bind()!");
+	}
+	return true;
 }
